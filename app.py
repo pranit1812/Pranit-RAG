@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).parent / "ui_components"))
 from config import get_config
 from project_manager_simple import SimpleProjectManager
 from utils.logging_config import setup_logging
-from utils.error_handling import handle_error
+# Error handling is defined locally in this file
 from utils.monitoring import get_performance_monitor
 
 # Initialize logging and monitoring
@@ -498,6 +498,12 @@ def render_existing_files_processing():
         elif existing_files and has_chunks:
             # Files have been processed
             st.success(f"✅ {len(existing_files)} document(s) have been processed and are ready for queries!")
+            
+            # Add option to reprocess
+            if st.button("🔄 Reprocess Documents", key="reprocess_docs"):
+                # Delete existing chunks to force reprocessing
+                chunks_file.unlink()
+                st.rerun()
     
     except Exception as e:
         st.error(f"❌ Error checking existing files: {str(e)}")
@@ -534,6 +540,9 @@ def render_file_upload():
                         f"({st.session_state.config.app.max_upload_mb} MB)")
             else:
                 process_uploaded_files(uploaded_files)
+    else:
+        # Show a message when no files are selected
+        st.info("👆 Select files above to upload and process them through the RAG pipeline.")
     
     # Processing status display
     if st.session_state.processing_status:

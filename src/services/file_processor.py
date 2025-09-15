@@ -14,7 +14,7 @@ from enum import Enum
 from models.types import Chunk, ChunkMetadata
 from config import get_config
 from utils.io_utils import write_text_file
-from services.project_manager import ProjectManager
+from ui_components.project_manager_simple import SimpleProjectManager
 
 
 class ProcessingStatus(Enum):
@@ -148,7 +148,7 @@ class ProcessingPipeline:
         """
         self.project_id = project_id
         self.config = get_config()
-        self.project_manager = ProjectManager()
+        self.project_manager = SimpleProjectManager()
         
         # Processing components (will be imported when needed to avoid circular imports)
         self._extraction_router = None
@@ -349,7 +349,7 @@ class FileProcessor:
         """
         self.project_id = project_id
         self.config = get_config()
-        self.project_manager = ProjectManager()
+        self.project_manager = SimpleProjectManager()
         self.validator = FileValidator(self.config.app.max_upload_mb)
         self.pipeline = ProcessingPipeline(project_id)
         
