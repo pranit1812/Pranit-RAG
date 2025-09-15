@@ -1,0 +1,79 @@
+app:
+  data_dir: ./storage
+  project_cache_size: 3
+  max_upload_mb: 100000
+
+llm:
+  chat_model: gpt-4o
+  embed_model: text-embedding-3-large
+  vision_assist: false
+
+vision:
+  enabled: true
+  max_images: 3
+  resolution_scale: 2.0
+
+embeddings:
+  provider: openai
+  local_model: all-MiniLM-L12-v2
+  batch_size: 64
+
+extract:
+  pipeline_priority:
+    - docling
+    - unstructured_hi_res
+    - native_pdf
+    - ocr_ppstructure
+  languages:
+    - en
+  ocr:
+    engine: paddleocr
+    ppstructure_model: TableMaster
+    min_conf: 0.5
+
+chunk:
+  target_tokens: 500
+  max_tokens: 900
+  preserve:
+    tables: true
+    lists: true
+  drawing:
+    cluster_text: true
+    max_regions: 8
+
+retrieve:
+  top_k: 5
+  hybrid: true
+  reranker: none
+  sliding_window: false
+  window_size: 1
+
+logging:
+  log_level: INFO
+  log_dir: logs
+  max_file_size_mb: 10
+  backup_count: 5
+  console_logging: true
+
+error_handling:
+  max_retries: 3
+  backoff_factor: 1.0
+  continue_on_extraction_error: true
+  max_memory_mb: 4096
+  api_timeout_seconds: 30
+
+monitoring:
+  enabled: true
+  max_history: 1000
+  system_monitoring_interval: 30.0
+  performance_thresholds:
+    max_operation_duration: 300.0
+    max_memory_usage_mb: 2048.0
+  export_metrics_on_shutdown: true
+
+debug:
+  enabled: false
+  output_dir: debug_logs
+  log_extraction_details: false
+  log_chunking_details: false
+  log_retrieval_details: false

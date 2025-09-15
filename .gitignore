@@ -1,0 +1,41 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+
+# Virtual environments and env files
+venv/
+.venv/
+.env
+
+# Editors/IDEs
+.vscode/
+.idea/
+*.code-workspace
+
+# Logs
+logs/
+*.log
+
+# Local storage (artifacts)
+storage/
+# keep marker if needed
+# !storage/.gitkeep
+
+# Streamlit
+.streamlit/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Indexes and caches
+**/bm25_index/
+**/images/
+**/raw/
+
+# Notebooks
+.ipynb_checkpoints/
