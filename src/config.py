@@ -65,8 +65,8 @@ class ExtractConfig:
     ])
     languages: List[str] = field(default_factory=lambda: ["en"])
     ocr: OCRConfig = field(default_factory=OCRConfig)
-    timeout_seconds: int = 180
-    max_memory_mb: int = 4096
+    timeout_seconds: int = 300  # 5 minutes for complex documents
+    max_memory_mb: int = 8192   # 8GB for large documents
 
 
 @dataclass

@@ -68,7 +68,7 @@ class ListProcessor:
     def _is_continuation_line(self, line: str) -> bool:
         """Check if line is a continuation of previous list item."""
         # Lines that start with significant indentation but no list marker
-        if re.match(r'^\s{4,}[^\s-*•\d]', line):
+        if re.match(r'^\s{4,}[^\s\-\*•\d]', line):
             return True
         return False
     
