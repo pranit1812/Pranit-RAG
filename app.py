@@ -233,20 +233,37 @@ def render_project_management():
         
         # Project selection dropdown
         if projects:
-            project_options = {f"{p.name} ({p.doc_count} docs, {p.chunk_count} chunks)": p.project_id 
-                             for p in projects}
-            project_options["-- Select Project --"] = None
+            # Build ordered options: default first
+            option_labels = ["-- Select Project --"] + [
+                f"{p.name} ({p.doc_count} docs, {p.chunk_count} chunks)" for p in projects
+            ]
+            option_to_id = {"-- Select Project --": None}
+            for p in projects:
+                option_to_id[f"{p.name} ({p.doc_count} docs, {p.chunk_count} chunks)"] = p.project_id
+            
+            # Choose index: default to 0 when no project selected
+            if st.session_state.current_project_id is None:
+                select_index = 0
+            else:
+                # Find the matching option index for current project
+                try:
+                    current_label = next(
+                        label for label, pid in option_to_id.items() if pid == st.session_state.current_project_id
+                    )
+                    select_index = option_labels.index(current_label)
+                except StopIteration:
+                    select_index = 0
+                except ValueError:
+                    select_index = 0
             
             selected_display = st.selectbox(
                 "Select Project",
-                options=list(project_options.keys()),
-                index=0 if st.session_state.current_project_id is None else 
-                      next((i for i, (_, pid) in enumerate(project_options.items()) 
-                           if pid == st.session_state.current_project_id), 0),
+                options=option_labels,
+                index=select_index,
                 key="project_selector"
             )
             
-            selected_project_id = project_options[selected_display]
+            selected_project_id = option_to_id[selected_display]
             
             # Update current project if selection changed
             if selected_project_id != st.session_state.current_project_id:
@@ -259,7 +276,7 @@ def render_project_management():
         # New project creation
         st.subheader("Create New Project")
         
-        with st.form("new_project_form"):
+        with st.form("new_project_form", clear_on_submit=True):
             project_name = st.text_input(
                 "Project Name",
                 placeholder="Enter project name...",
@@ -618,22 +635,7 @@ def process_uploaded_files(uploaded_files):
                 )
             
             st.success(f"✅ Successfully uploaded {len(saved_files)} file(s)")
-            
-            # Add the ACTUAL processing button
-            if st.button("🚀 Process Documents Through RAG Pipeline", type="primary", key="process_docs"):
-                from src.services.document_processor import process_uploaded_documents
-                
-                def update_processing_status(status):
-                    st.session_state.processing_status = status
-                
-                result = process_uploaded_documents(
-                    saved_files, 
-                    project_path,
-                    progress_callback=update_processing_status
-                )
-                
-                # Update session state with final result
-                st.session_state.processing_status = result
+            st.rerun()
         
     except Exception as e:
         handle_error(e, "processing uploaded files")
@@ -2307,92 +2309,11 @@ def render_main_content():
     
     # Chat interface
     st.subheader("💬 Chat Interface")
-    render_chat_interface(project_info)
+    render_chat_interface()
 
 
 
 
-def render_chat_interface(project_info):
-    """Render the chat interface for querying documents."""
-    try:
-        # Check if project has any documents
-        if project_info.doc_count == 0:
-            st.info("📄 Upload and process documents to start asking questions.")
-            return
-        
-        # Display chat history
-        if st.session_state.chat_history:
-            st.subheader("💬 Conversation History")
-            
-            for i, message in enumerate(st.session_state.chat_history):
-                if message["role"] == "user":
-                    with st.chat_message("user"):
-                        st.write(message["content"])
-                
-                elif message["role"] == "assistant":
-                    with st.chat_message("assistant"):
-                        st.markdown(message["content"])
-                        
-                        # Show sources if available
-                        if message.get("sources"):
-                            with st.expander(f"📚 Sources ({len(message['sources'])} found)"):
-                                for j, source in enumerate(message["sources"], 1):
-                                    st.write(f"**S{j}:** {source.get('doc_name', 'Unknown')} - Page {source.get('page_number', '?')}")
-                                    if source.get("snippet"):
-                                        st.code(source["snippet"][:200] + "..." if len(source["snippet"]) > 200 else source["snippet"])
-        
-        # Query input
-        st.subheader("🔍 Ask a Question")
-        
-        # Example queries
-        with st.expander("💡 Example Questions"):
-            example_queries = [
-                "What are the HVAC requirements for the mechanical room?",
-                "Show me the electrical specifications for lighting systems.",
-                "What materials are specified for the exterior walls?",
-                "What are the fire protection requirements?",
-                "List all the plumbing fixtures and their specifications.",
-                "What are the structural requirements for the foundation?"
-            ]
-            
-            for example in example_queries:
-                if st.button(f"💬 {example}", key=f"example_{hash(example)}"):
-                    process_user_query(example)
-                    st.rerun()
-        
-        # Manual query input
-        user_query = st.text_input(
-            "Enter your question:",
-            placeholder="Ask about specifications, requirements, materials, etc.",
-            key="user_query_input"
-        )
-        
-        # Query options
-        col1, col2, col3 = st.columns([1, 2, 2])
-        
-        with col1:
-            ask_button = st.button("🚀 Ask", type="primary")
-        
-        with col2:
-            vision_enabled = st.checkbox(
-                "👁️ Vision Assist", 
-                value=st.session_state.get("vision_enabled", False),
-                help="Include visual analysis of document pages"
-            )
-            st.session_state.vision_enabled = vision_enabled
-        
-        with col3:
-            if st.button("🗑️ Clear History"):
-                st.session_state.chat_history = []
-                st.rerun()
-        
-        # Process query
-        if ask_button and user_query:
-            process_user_query(user_query)
-            st.rerun()
-    
-    except Exception as e:
-        st.error(f"Chat interface error: {str(e)}")
 
 
 
